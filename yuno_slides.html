@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yuno Strategic Recommendation</title>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@200;300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --blue: #3E4FE0;
+    --blue-dark: #1726A6;
+    --blue-light: #788CFF;
+    --black: #282A30;
+    --green: #E0ED80;
+    --green-dark: #B0B753;
+    --gray: #92959B;
+    --gray-dark: #616366;
+    --lilac: #E8EAF5;
+    --white: #ffffff;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Titillium Web', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 40px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+    background: var(--black);
+  }
+
+  .logo {
+    font-family: 'Titillium Web', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.05em;
+    color: var(--white);
+  }
+
+  .nav-dots {
+    display: flex;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .dot.active { background: var(--blue); }
+
+  .slide-counter {
+    font-size: 11px;
+    color: var(--gray);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+
+  .slides-container {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    padding: 52px 64px;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+    background: var(--black);
+  }
+
+  .slide.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  /* Dot pattern background decoration */
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 220px;
+    height: 220px;
+    background-image: radial-gradient(circle, rgba(62,79,224,0.25) 1.5px, transparent 1.5px);
+    background-size: 16px 16px;
+    pointer-events: none;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 24px;
+    width: fit-content;
+  }
+
+  .tag-blue { background: rgba(62,79,224,0.15); color: var(--blue-light); }
+  .tag-green { background: rgba(224,237,128,0.12); color: var(--green); }
+  .tag-red { background: rgba(239,68,68,0.1); color: #f87171; }
+  .tag-yellow { background: rgba(224,237,128,0.1); color: var(--green); }
+
+  h1 {
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    max-width: 780px;
+    color: var(--white);
+  }
+
+  h2 {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 28px;
+    max-width: 700px;
+    color: var(--white);
+  }
+
+  .subtitle {
+    font-size: 16px;
+    color: var(--gray);
+    max-width: 600px;
+    line-height: 1.65;
+    font-weight: 300;
+  }
+
+  .highlight { color: var(--blue-light); }
+  .highlight-green { color: var(--green); }
+
+  .divider {
+    width: 40px;
+    height: 3px;
+    background: var(--blue);
+    border-radius: 1px;
+    margin: 24px 0;
+  }
+
+  .cards {
+    display: grid;
+    gap: 14px;
+    margin-top: 8px;
+  }
+
+  .cards-3 { grid-template-columns: repeat(3, 1fr); }
+  .cards-2 { grid-template-columns: repeat(2, 1fr); }
+
+  .card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 4px;
+    padding: 22px;
+  }
+
+  .card-number {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--blue-light);
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .card-label {
+    font-size: 10px;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.5;
+    font-weight: 300;
+  }
+
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .flow-step {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 4px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+    text-align: center;
+    min-width: 130px;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  .flow-step.green {
+    border-color: rgba(224,237,128,0.3);
+    background: rgba(224,237,128,0.06);
+    color: var(--green);
+  }
+
+  .flow-arrow {
+    color: rgba(255,255,255,0.2);
+    font-size: 16px;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gray);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-weight: 600;
+  }
+
+  .table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.6);
+    font-weight: 300;
+  }
+
+  .table tr:last-child td { border-bottom: none; }
+  .table .good { color: var(--green); font-weight: 600; }
+  .table .bad { color: #f87171; }
+
+  .bullets {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .bullet {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .bullet-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(62,79,224,0.2);
+    color: var(--blue-light);
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-weight: 700;
+  }
+
+  .bullet-icon.red {
+    background: rgba(239,68,68,0.1);
+    color: #f87171;
+  }
+
+  .bullet-text {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.55;
+    font-weight: 300;
+  }
+
+  .bullet-text strong {
+    color: var(--white);
+    font-weight: 600;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+
+  .label-sm {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gray);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .stat-number {
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--blue-light);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-sub {
+    font-size: 12px;
+    color: var(--gray);
+    margin-bottom: 22px;
+    font-weight: 300;
+  }
+
+  .bottom-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 40px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+    background: var(--black);
+  }
+
+  .btn {
+    padding: 9px 22px;
+    border-radius: 2px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    font-family: 'Titillium Web', sans-serif;
+    letter-spacing: 0.04em;
+  }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.5);
+  }
+
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+
+  .btn-primary {
+    background: var(--blue);
+    color: var(--white);
+  }
+
+  .btn-primary:hover { background: var(--blue-dark); }
+  .btn:disabled { opacity: 0.25; cursor: default; }
+
+  .key-hint {
+    font-size: 11px;
+    color: rgba(255,255,255,0.15);
+    letter-spacing: 0.05em;
+    font-weight: 300;
+  }
+
+  .slide-1-accent {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--blue) 0%, var(--blue-light) 50%, transparent 100%);
+  }
+
+  .green-tag-inline {
+    display: inline-block;
+    background: rgba(224,237,128,0.12);
+    color: var(--green);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .flow-col-step {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 4px;
+    padding: 11px 16px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    font-weight: 300;
+  }
+
+  .flow-col-step.green {
+    border-color: rgba(224,237,128,0.25);
+    background: rgba(224,237,128,0.05);
+    color: var(--green);
+  }
+
+  .flow-col-arrow {
+    color: rgba(255,255,255,0.15);
+    font-size: 13px;
+    padding-left: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <span class="logo">yuno</span>
+  <div class="nav-dots" id="navDots"></div>
+  <span class="slide-counter" id="counter">01 / 08</span>
+</div>
+
+<div class="slides-container">
+
+  <!-- SLIDE 1: Title -->
+  <div class="slide active" id="slide-0">
+    <div class="tag tag-blue">Strategy — February 2026</div>
+    <h1>The Checkout Conversion Crisis:<br>Should Yuno Build a<br>Hosted Checkout Page?</h1>
+    <div class="divider"></div>
+    <p class="subtitle">Three mid-market merchants asked for a hosted checkout. This is the analysis behind what Yuno should build instead — and why it matters more.</p>
+    <div class="slide-1-accent"></div>
+  </div>
+
+  <!-- SLIDE 2: The real problem -->
+  <div class="slide" id="slide-1">
+    <div class="tag tag-yellow">The Real Problem</div>
+    <h2>Merchants aren't asking for a new UI. They're telling us they don't have engineers.</h2>
+    <div class="cards cards-3" style="margin-top:28px">
+      <div class="card">
+        <div class="card-number">60%</div>
+        <div class="card-label">of mid-market prospects lost</div>
+        <div class="card-desc">cite engineering bandwidth as the barrier to integrating Yuno's API</div>
+      </div>
+      <div class="card">
+        <div class="card-number">8 wks</div>
+        <div class="card-label">average integration time</div>
+        <div class="card-desc">for a mid-market merchant today, too long for teams with 1-2 backend devs and no frontend</div>
+      </div>
+      <div class="card">
+        <div class="card-number">4,200</div>
+        <div class="card-label">addressable companies</div>
+        <div class="card-desc">mid-market merchants in LatAm with $5M–$50M GMV that Yuno cannot reach today</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: Why not hosted checkout -->
+  <div class="slide" id="slide-2">
+    <div class="tag tag-red">Why Not the Hosted Checkout</div>
+    <h2>Building a hosted checkout solves the symptom. It creates three new problems.</h2>
+    <div class="bullets" style="margin-top:20px">
+      <div class="bullet">
+        <div class="bullet-icon red">✕</div>
+        <div class="bullet-text"><strong>It commoditizes Yuno's positioning.</strong> A hosted checkout puts Yuno on the same shelf as Stripe and Adyen — competing where they have more brand, more resources, and a head start. Yuno doesn't win by being another Stripe.</div>
+      </div>
+      <div class="bullet">
+        <div class="bullet-icon red">✕</div>
+        <div class="bullet-text"><strong>It attracts the wrong customers.</strong> Mid-market already churns at 8% vs 3% for enterprise. Exit interviews cite "our team isn't technical enough." A lower integration bar accelerates this dynamic.</div>
+      </div>
+      <div class="bullet">
+        <div class="bullet-icon red">✕</div>
+        <div class="bullet-text"><strong>The opportunity cost is concrete.</strong> Building it delays two enterprise features by one quarter each, putting <strong>$1.2M in ARR at risk</strong> for an uncertain return.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: The solution -->
+  <div class="slide" id="slide-3">
+    <div class="tag tag-green">The Recommendation</div>
+    <h2>Build an <span class="highlight-green">AI Integration Agent</span> that gives merchants the frontend engineer they don't have.</h2>
+    <div class="flow">
+      <div class="flow-step">Merchant describes requirements in natural language</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Agent generates complete API-first integration code</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Automated quality checks and PCI validation</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step green">Integration ready to deploy in days</div>
+    </div>
+    <p class="subtitle" style="margin-top:28px">Yuno stays API-first. Every merchant gets a custom checkout. No competitor offers this today.</p>
+  </div>
+
+  <!-- SLIDE 5: Why it's better -->
+  <div class="slide" id="slide-4">
+    <div class="tag tag-green">Competitive Advantage</div>
+    <h2>Five reasons the agent beats the hosted checkout.</h2>
+    <div class="bullets" style="margin-top:16px">
+      <div class="bullet">
+        <div class="bullet-icon">✓</div>
+        <div class="bullet-text"><strong>API-first positioning intact.</strong> Yuno is not another Stripe. The agent reinforces the orchestration differentiator instead of diluting it.</div>
+      </div>
+      <div class="bullet">
+        <div class="bullet-icon">✓</div>
+        <div class="bullet-text"><strong>Custom checkout per merchant.</strong> Solves the "checkout is our brand moment" objection. Every merchant keeps full control of their UI.</div>
+      </div>
+      <div class="bullet">
+        <div class="bullet-icon">✓</div>
+        <div class="bullet-text"><strong>Resilience by design.</strong> A bug in one merchant's generated integration does not affect any other. A hosted checkout bug takes down every merchant simultaneously.</div>
+      </div>
+      <div class="bullet">
+        <div class="bullet-icon">✓</div>
+        <div class="bullet-text"><strong>Second revenue stream.</strong> Consumption-based pricing on agent usage. Token costs are passed through to merchants with markup — Yuno earns beyond take rate.</div>
+      </div>
+      <div class="bullet">
+        <div class="bullet-icon">✓</div>
+        <div class="bullet-text"><strong>First mover.</strong> No competitor offers this today. Not Stripe, not Adyen, not regional PSPs.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: Financials -->
+  <div class="slide" id="slide-5">
+    <div class="tag tag-blue">Financial Model</div>
+    <h2>Break-even at <span class="highlight-green">10 new clients</span>. Lower cost, higher LTV than the hosted checkout.</h2>
+    <div class="two-col" style="margin-top:20px">
+      <div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Hosted Checkout</th>
+              <th>AI Agent</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Build cost</td>
+              <td class="bad">$180,000</td>
+              <td class="good">~$180,000</td>
+            </tr>
+            <tr>
+              <td>Maintenance / year</td>
+              <td class="bad">$180,000</td>
+              <td class="good">$50–80,000</td>
+            </tr>
+            <tr>
+              <td>Token costs</td>
+              <td style="color:var(--gray)">N/A</td>
+              <td class="good">Merchant-funded</td>
+            </tr>
+            <tr>
+              <td>3-year total</td>
+              <td class="bad">$720,000</td>
+              <td class="good">~$330–420,000</td>
+            </tr>
+            <tr>
+              <td>2nd revenue stream</td>
+              <td class="bad">No</td>
+              <td class="good">Yes</td>
+            </tr>
+            <tr>
+              <td>Enterprise ARR at risk</td>
+              <td class="bad">$1.2M</td>
+              <td class="good">$0</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="label-sm">Revenue per mid-market client</div>
+        <div class="stat-number">$39,600</div>
+        <div class="stat-sub">per year at 0.22% take rate on $18M avg TPV</div>
+        <div class="label-sm">Break-even</div>
+        <div class="stat-number">10 clients</div>
+        <div class="stat-sub">out of 4,200 addressable in LatAm</div>
+        <div class="label-sm">Client TPV growth</div>
+        <div class="stat-number">30%</div>
+        <div class="stat-sub">annually — mid-market grows faster than enterprise</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: Security -->
+  <div class="slide" id="slide-6">
+    <div class="tag tag-blue">Security</div>
+    <h2>The agent never touches payment data. The risk surface is <span class="highlight-green">smaller</span> than a hosted checkout.</h2>
+    <div class="two-col" style="margin-top:20px; gap:40px">
+      <div>
+        <div class="label-sm" style="margin-bottom:12px">Data flow after agent deployment</div>
+        <div class="flow-col">
+          <div class="flow-col-step">Client pays on merchant site</div>
+          <div class="flow-col-arrow">↓</div>
+          <div class="flow-col-step">Generated code calls Yuno API</div>
+          <div class="flow-col-arrow">↓</div>
+          <div class="flow-col-step">Yuno routes to PSP</div>
+          <div class="flow-col-arrow">↓</div>
+          <div class="flow-col-step green">Bank processes payment</div>
+        </div>
+        <p style="font-size:12px;color:var(--gray);margin-top:10px;font-weight:300">Agent is not present in this flow at all.</p>
+      </div>
+      <div>
+        <div class="label-sm" style="margin-bottom:12px">Mitigations during generation phase</div>
+        <div class="bullets">
+          <div class="bullet">
+            <div class="bullet-icon">✓</div>
+            <div class="bullet-text"><strong>PCI-certified templates.</strong> Code assembled from pre-validated blocks — not generated freely.</div>
+          </div>
+          <div class="bullet">
+            <div class="bullet-icon">✓</div>
+            <div class="bullet-text"><strong>Automated quality checks.</strong> Static analysis, payment test suite, and compliance validation before any code reaches the merchant.</div>
+          </div>
+          <div class="bullet">
+            <div class="bullet-icon">✓</div>
+            <div class="bullet-text"><strong>Full audit trail.</strong> Every generation logged: inputs, templates used, test results, timestamp.</div>
+          </div>
+          <div class="bullet">
+            <div class="bullet-icon">✓</div>
+            <div class="bullet-text"><strong>Isolated sandbox.</strong> Generation runs in a contained environment with no access to production systems.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: Conclusion -->
+  <div class="slide" id="slide-7">
+    <div class="tag tag-green">Conclusion</div>
+    <h2>Yuno's advantage is the orchestration layer.<br>The agent makes it <span class="highlight-green">accessible to everyone.</span></h2>
+    <div class="divider"></div>
+    <p class="subtitle" style="max-width:660px">The three merchants who asked for a hosted checkout were not asking for a new UI. They were telling us they don't have the resources to integrate. Building a hosted checkout would cost more, delay enterprise revenue, and position Yuno as a follower. The AI Integration Agent costs less to maintain, adds a second revenue stream, keeps Yuno API-first, and gives mid-market merchants something no competitor can offer today: the engineer they don't have.</p>
+    <div style="margin-top:32px;padding:16px 20px;border-left:3px solid var(--blue);background:rgba(62,79,224,0.06);max-width:560px;border-radius:0 4px 4px 0;">
+      <p style="font-size:13px;color:rgba(255,255,255,0.5);font-weight:300;line-height:1.6">This is not a product feature. It is a strategic position. Yuno doesn't become the engineer's tool. It becomes the tool for merchants who don't have one.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="bottom-nav">
+  <button class="btn btn-ghost" id="prevBtn" onclick="changeSlide(-1)" disabled>← Prev</button>
+  <span class="key-hint">← → arrow keys to navigate</span>
+  <button class="btn btn-primary" id="nextBtn" onclick="changeSlide(1)">Next →</button>
+</div>
+
+<script>
+  let current = 0;
+  const total = 8;
+  const dotsEl = document.getElementById('navDots');
+  const counterEl = document.getElementById('counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  }
+
+  function goTo(n) {
+    document.getElementById('slide-' + current).classList.remove('active');
+    dotsEl.children[current].classList.remove('active');
+    current = n;
+    document.getElementById('slide-' + current).classList.add('active');
+    dotsEl.children[current].classList.add('active');
+    counterEl.textContent = String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+  }
+
+  function changeSlide(dir) {
+    const n = current + dir;
+    if (n >= 0 && n < total) goTo(n);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') changeSlide(-1);
+  });
+</script>
+</body>
+</html>
